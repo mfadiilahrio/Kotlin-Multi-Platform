@@ -5,6 +5,7 @@ import com.rio.core.data.xmen.cloudservice.XmensCloudService
 import com.rio.core.data.xmen.mapper.XmenDataListMapper
 import com.rio.core.data.xmen.repository.XmenDataListRepositoryImpl
 import com.rio.core.domain.usecase.ListUseCaseImpl
+import com.rio.core.viewmodel.ViewModelBinding
 import com.rio.core.viewmodel.common.ListViewModel
 import com.rio.core.viewmodel.common.ListViewModelImpl
 import com.rio.kotlinmultiplatform.common.RecyclerViewAdapter
@@ -18,7 +19,9 @@ import org.koin.dsl.module
 
 val xmenModule = module {
 
-    scope(named("XMenActivity")) {
+    scope(named<XMenActivity>()) {
+        scoped { ViewModelBinding() }
+
         scoped<ListViewModel<String, Xmen>>(named("xmensViewModel")) {
             val domainMapper = XmenDataListMapper()
 

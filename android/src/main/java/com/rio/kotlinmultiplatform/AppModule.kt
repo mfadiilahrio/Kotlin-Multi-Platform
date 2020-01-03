@@ -14,7 +14,7 @@ val appModule = module {
 
     single(named("hosturl")) { "https://www.omdbapi.com/" }
 
-    single { ViewModelBinding() }
+    factory { ViewModelBinding() }
 
     single {
         val driver = AndroidSqliteDriver(
