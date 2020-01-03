@@ -9,10 +9,18 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.badoo.reaktive.observable.observeOn
 import com.badoo.reaktive.scheduler.mainScheduler
+import com.rio.core.data.avenger.cache.AvengerSqlCache
+import com.rio.core.data.avenger.cloudservice.AvengersCloudService
+import com.rio.core.data.avenger.mapper.AvengerDataListMapper
+import com.rio.core.data.avenger.repository.AvangerDataListRepositoryImpl
+import com.rio.core.data.cache.DatabaseHelper
+import com.rio.core.domain.usecase.ListUseCaseImpl
 import com.rio.core.viewmodel.ViewModelBinding
 import com.rio.core.viewmodel.common.ListViewModel
+import com.rio.core.viewmodel.common.ListViewModelImpl
 import com.rio.kotlinmultiplatform.R
 import com.rio.kotlinmultiplatform.avenger.data.Avenger
+import com.rio.kotlinmultiplatform.avenger.data.AvengersMapper
 import com.rio.kotlinmultiplatform.base.BaseActivity
 import com.rio.kotlinmultiplatform.common.AdapterClickListener
 import com.rio.kotlinmultiplatform.common.RecyclerViewAdapter
@@ -22,16 +30,37 @@ import org.koin.core.qualifier.named
 
 class AvengerActivity : BaseActivity(), AdapterClickListener<Avenger> {
 
-    private val mViewModelBinding: ViewModelBinding by inject()
+    private val dbHelper: DatabaseHelper by inject()
 
-    private val mViewModel: ListViewModel<String, Avenger> by inject(named("avengersViewModel"))
-
-    private val mAdapter: RecyclerViewAdapter<AdapterClickListener<Avenger>, Avenger, RecyclerView.ViewHolder> by inject(
-        named("avengerListAdapter")
-    )
-
+    private lateinit var mAdapter: AvengerAdapter<Avenger>
     private lateinit var mRecyclerView: RecyclerView
     private lateinit var mRefreshLayout: SwipeRefreshLayout
+
+    private val mViewModelBinding = ViewModelBinding()
+
+    private val mViewModel: ListViewModel<String, Avenger> by lazy {
+        val domainMapper = AvengerDataListMapper()
+
+        val service = AvengersCloudService(
+            "5e360c9",
+            "https://www.omdbapi.com/",
+            domainMapper
+        )
+
+        val cache = AvengerSqlCache(dbHelper)
+
+        val repository =
+            AvangerDataListRepositoryImpl(
+                service,
+                cache
+            )
+
+        val useCase = ListUseCaseImpl(repository)
+
+        val mapper = AvengersMapper()
+
+        ListViewModelImpl(useCase, mapper)
+    }
 
     private var mIsRefreshing = false
 
@@ -42,6 +71,7 @@ class AvengerActivity : BaseActivity(), AdapterClickListener<Avenger> {
 
         setContentView(R.layout.activity_avenger)
 
+        mAdapter = AvengerAdapter(mapOf(0 to AvengerViewHolderFactory()))
         mRecyclerView = findViewById(R.id.listing)
         mRefreshLayout = findViewById(R.id.refresh_layout)
 

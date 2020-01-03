@@ -15,16 +15,19 @@ import com.rio.kotlinmultiplatform.base.BaseActivity
 import com.rio.kotlinmultiplatform.common.RecyclerViewAdapter
 import com.rio.kotlinmultiplatform.xmen.data.Xmen
 import kotlinx.android.synthetic.main.activity_xmen.*
+import org.koin.android.ext.android.getKoin
 import org.koin.android.ext.android.inject
 import org.koin.core.qualifier.named
 
 class XMenActivity : BaseActivity() {
 
+    private val scope = getKoin().getOrCreateScope("XMenActivity", named("XMenActivity"))
+
     private val mViewModelBinding: ViewModelBinding by inject()
 
-    private val mViewModel: ListViewModel<String, Xmen> by inject(named("xmensViewModel"))
+    private val mViewModel: ListViewModel<String, Xmen> by scope.inject(named("xmensViewModel"))
 
-    private val mAdapter: RecyclerViewAdapter<Nothing, Xmen, *> by inject(
+    private val mAdapter: RecyclerViewAdapter<Nothing, Xmen, *> by scope.inject(
         named("xmenListAdapter")
     )
 
@@ -80,6 +83,7 @@ class XMenActivity : BaseActivity() {
 
     override fun onDestroy() {
         mViewModelBinding.dispose()
+
 
         super.onDestroy()
     }
